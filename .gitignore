@@ -1,0 +1,69 @@
+# Fiber Maintenance Analytics System - Git Ignore
+
+# Environment and secrets - NEVER commit these
+.env
+*.env
+.env.local
+.env.*.local
+.streamlit/secrets.toml
+
+# Keep example/template files
+!.env.example
+!.streamlit/secrets.toml.example
+!.streamlit/config.toml
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data files (keep the folder structure)
+data/*.csv
+data/*.xlsx
+data/*.json
+!data/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/

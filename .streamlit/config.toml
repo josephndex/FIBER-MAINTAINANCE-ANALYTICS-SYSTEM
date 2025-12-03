@@ -1,0 +1,45 @@
+# Streamlit Configuration for Fiber Maintenance Analytics System
+# This file configures the app's appearance and behavior
+
+[theme]
+# Primary accent color for interactive elements
+primaryColor = "#667eea"
+
+# Background color for the main content area
+backgroundColor = "#0f172a"
+
+# Background color for sidebar and most interactive widgets
+secondaryBackgroundColor = "#1e293b"
+
+# Color used for almost all text
+textColor = "#f1f5f9"
+
+# Font family for all text in the app
+font = "sans serif"
+
+[server]
+# Enable CORS for the server
+enableCORS = false
+
+# Enable XSRF protection
+enableXsrfProtection = true
+
+# Max upload size in MB
+maxUploadSize = 200
+
+# Port (Streamlit Cloud will override this)
+port = 8501
+
+[browser]
+# Gather usage stats
+gatherUsageStats = false
+
+# Server address
+serverAddress = "0.0.0.0"
+
+[runner]
+# Magic commands enabled
+magicEnabled = true
+
+# Fast reload for development
+fastReruns = true
