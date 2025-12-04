@@ -274,7 +274,14 @@ class AuthManager:
         """
         if BCRYPT_AVAILABLE:
             # Use bcrypt for secure hashing with automatic salt
-            salt = bcrypt.gensalt(rounds=12)
+            # Note: Some bcrypt libraries use gensalt(rounds=12), others use gensalt(12)
+            try:
+                salt = bcrypt.gensalt(12)  # Try without keyword argument first
+            except TypeError:
+                try:
+                    salt = bcrypt.gensalt(rounds=12)  # Try with keyword argument
+                except TypeError:
+                    salt = bcrypt.gensalt()  # Fall back to default
             return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
         else:
             # Fallback to SHA-256 with a simple salt
