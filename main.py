@@ -965,6 +965,8 @@ ticket_search_page = st.Page("pages/16_Ticket_Search.py", title="Ticket Search")
 help_page = st.Page("pages/17_❓_Help.py", title="Help")
 comparison_page = st.Page("pages/18_Comparison.py", title="Comparison")
 advanced_predictions_page = st.Page("pages/19_Advanced_Predictions.py", title="Advanced Predictions")
+dispatcher_page = st.Page("pages/20_Dispatcher_Performance.py", title="Dispatcher Performance")
+suggestions_page = st.Page("pages/21_Suggestions.py", title="Suggestions")
 
 # Create navigation - Login is default if not authenticated
 if check_authentication():
@@ -975,6 +977,7 @@ if check_authentication():
         kpi_page,
         cluster_page,
         engineer_page,
+        dispatcher_page,
         regional_page,
         service_page,
         trends_page,
@@ -986,6 +989,7 @@ if check_authentication():
         advanced_predictions_page,
         ticket_search_page,
         comparison_page,
+        suggestions_page,
         help_page,
         admin_page,
         noc_entries_page

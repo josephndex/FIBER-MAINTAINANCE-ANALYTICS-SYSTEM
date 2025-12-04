@@ -26,44 +26,58 @@ log_page_visit("2_KPI_Dashboard.py")
 
 def create_kpi_card(title, value, subtitle, grade=None, icon=""):
     """Create a STUNNING styled KPI card - FIXED grade visibility"""
-    # Grade badge with proper contrast - NOT inside gradient text
-    grade_html = ""
-    if grade:
-        grade_color = get_grade_color(grade)
-        grade_html = f"""
-        <div style='margin-top: 0.75rem;'>
-            <span style='
-                display: inline-block;
-                background: {grade_color};
-                color: white;
-                padding: 0.4rem 1.2rem;
-                border-radius: 25px;
-                font-weight: 800;
-                font-size: 1rem;
-                box-shadow: 0 4px 15px {grade_color}80;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-            '>Grade: {grade}</span>
-        </div>
-        """
+    # Determine grade color
+    grade_color = get_grade_color(grade) if grade else "#667eea"
     
-    st.markdown(f"""
-    <div style='
-        background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
-        padding: 1.75rem;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        border-top: 4px solid #f97316;
-        text-align: center;
-        margin-bottom: 1rem;
-    '>
-        <p style='margin: 0; color: #a78bfa; font-size: 0.9rem; text-transform: uppercase; 
-                   letter-spacing: 1px; font-weight: 600;'>{icon} {title}</p>
-        <p style='margin: 0.75rem 0 0.5rem 0; color: #f97316; font-size: 2.25rem; font-weight: 800;'>{value}</p>
-        <p style='margin: 0; color: #94a3b8; font-size: 0.9rem;'>{subtitle}</p>
-        {grade_html}
-    </div>
-    """, unsafe_allow_html=True)
+    # Build the HTML - grade badge is properly integrated
+    if grade:
+        st.markdown(f"""
+        <div style='
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+            padding: 1.75rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-top: 4px solid #f97316;
+            text-align: center;
+            margin-bottom: 1rem;
+        '>
+            <p style='margin: 0; color: #a78bfa; font-size: 0.9rem; text-transform: uppercase; 
+                       letter-spacing: 1px; font-weight: 600;'>{icon} {title}</p>
+            <p style='margin: 0.75rem 0 0.5rem 0; color: #f97316; font-size: 2.25rem; font-weight: 800;'>{value}</p>
+            <p style='margin: 0; color: #94a3b8; font-size: 0.9rem;'>{subtitle}</p>
+            <div style='margin-top: 0.75rem;'>
+                <span style='
+                    display: inline-block;
+                    background: {grade_color};
+                    color: white;
+                    padding: 0.4rem 1.2rem;
+                    border-radius: 25px;
+                    font-weight: 800;
+                    font-size: 1rem;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                '>Grade: {grade}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div style='
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+            padding: 1.75rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-top: 4px solid #f97316;
+            text-align: center;
+            margin-bottom: 1rem;
+        '>
+            <p style='margin: 0; color: #a78bfa; font-size: 0.9rem; text-transform: uppercase; 
+                       letter-spacing: 1px; font-weight: 600;'>{icon} {title}</p>
+            <p style='margin: 0.75rem 0 0.5rem 0; color: #f97316; font-size: 2.25rem; font-weight: 800;'>{value}</p>
+            <p style='margin: 0; color: #94a3b8; font-size: 0.9rem;'>{subtitle}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 def create_performance_table(df, title, value_col, grade_col):

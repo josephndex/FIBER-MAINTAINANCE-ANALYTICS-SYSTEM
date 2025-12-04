@@ -61,9 +61,52 @@ if 'df' not in st.session_state or st.session_state.get('df') is None:
 
 df = st.session_state['df']
 
+# Separate alarms from non-alarms
+from utils import filter_non_alarm_data, is_alarm_ticket
+
+# Create alarm and non-alarm dataframes
+df_non_alarm = filter_non_alarm_data(df)
+df_alarm = df[df.apply(lambda row: is_alarm_ticket(row), axis=1)] if 'Is_Alarm' not in df.columns else df[df['Is_Alarm'] == True]
+
+# Alarm toggle
+st.markdown("### Data View Mode")
+col1, col2, col3 = st.columns([2, 1, 1])
+
+with col1:
+    view_mode = st.radio(
+        "Select data to analyze:",
+        ["Non-Alarm Only (True Performance)", "All Tickets", "Alarm Only"],
+        horizontal=True,
+        help="Non-Alarm shows true cluster performance excluding automated alarm tickets"
+    )
+
+with col2:
+    alarm_count = len(df_alarm)
+    st.metric("Alarm Tickets", f"{alarm_count:,}", help="Automated alarm tickets")
+
+with col3:
+    non_alarm_count = len(df_non_alarm)
+    st.metric("Non-Alarm Tickets", f"{non_alarm_count:,}", help="Regular tickets (true performance)")
+
+# Select dataframe based on view mode
+if view_mode == "Non-Alarm Only (True Performance)":
+    df_analysis = df_non_alarm.copy()
+    st.info(f"📊 Analyzing **{len(df_analysis):,}** non-alarm tickets (excluding {len(df_alarm):,} alarm tickets)")
+elif view_mode == "Alarm Only":
+    df_analysis = df_alarm.copy()
+    st.info(f"🔔 Analyzing **{len(df_analysis):,}** alarm tickets only")
+else:
+    df_analysis = df.copy()
+    st.info(f"📋 Analyzing **all {len(df_analysis):,}** tickets (including alarms)")
+
+if df_analysis.empty:
+    st.warning("No data available for the selected view mode.")
+    st.stop()
+
 # Calculate cluster performance with loading indicator
+# Pass exclude_alarms=False since we already filtered the data based on view mode
 with st.spinner("Analyzing cluster performance... This may take a moment for large datasets."):
-    cluster_perf = calculate_cluster_performance(df)
+    cluster_perf = calculate_cluster_performance(df_analysis, exclude_alarms=False)
 
 if cluster_perf.empty:
     st.warning("No cluster data available for analysis.")

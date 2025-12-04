@@ -47,11 +47,33 @@ if 'EXTERNAL_BREACHED' not in df.columns:
     st.warning("No SLA breach column available in the data.")
     st.stop()
 
+# Debug info (can be removed later)
+with st.expander("🔍 Debug: Data Info", expanded=False):
+    st.write(f"Total rows in dataframe: {len(df)}")
+    st.write(f"EXTERNAL_BREACHED unique values: {df['EXTERNAL_BREACHED'].unique().tolist()}")
+    st.write(f"EXTERNAL_BREACHED value counts:")
+    st.write(df['EXTERNAL_BREACHED'].value_counts())
+
 # Calculate SLA metrics with loading indicator
 with st.spinner("Analyzing SLA compliance... This may take a moment for large datasets."):
     total_tickets = len(df)
-    sla_compliant = len(df[df['EXTERNAL_BREACHED'] == 'No'])
-    sla_breached = len(df[df['EXTERNAL_BREACHED'] == 'Yes'])
+    
+    # Handle different possible values for breached column (case-insensitive)
+    df_temp = df.copy()
+    df_temp['EXTERNAL_BREACHED'] = df_temp['EXTERNAL_BREACHED'].astype(str).str.strip().str.lower()
+    
+    # Count compliant (No, no, false, 0, False) and breached (Yes, yes, true, 1, True)
+    compliant_values = ['no', 'false', '0', 'n']
+    breached_values = ['yes', 'true', '1', 'y']
+    
+    sla_compliant = len(df_temp[df_temp['EXTERNAL_BREACHED'].isin(compliant_values)])
+    sla_breached = len(df_temp[df_temp['EXTERNAL_BREACHED'].isin(breached_values)])
+    
+    # If no matches found, try original logic
+    if sla_compliant == 0 and sla_breached == 0:
+        sla_compliant = len(df[df['EXTERNAL_BREACHED'] == 'No'])
+        sla_breached = len(df[df['EXTERNAL_BREACHED'] == 'Yes'])
+    
     sla_rate = (sla_compliant / total_tickets * 100) if total_tickets > 0 else 0
     sla_grade = get_sla_grade(sla_rate)
 

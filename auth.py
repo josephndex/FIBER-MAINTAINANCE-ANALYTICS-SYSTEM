@@ -45,7 +45,8 @@ POSITIONS = {
             "4_Engineer_Performance.py", "5_Regional_Analysis.py", "6_Service_Analysis.py",
             "7_Trends.py", "8_SLA_Analysis.py", "9_Challenges.py", "10_Recurring_Issues.py",
             "12_NOC Entries.py", "13_CEO_Dashboard.py", "14_Reports.py", "15_Predictions.py",
-            "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py"
+            "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py",
+            "20_Dispatcher_Performance.py", "21_Suggestions.py"
         ]
     },
     "ENGINEER": {
@@ -56,7 +57,8 @@ POSITIONS = {
             "4_Engineer_Performance.py", "5_Regional_Analysis.py", "6_Service_Analysis.py",
             "7_Trends.py", "8_SLA_Analysis.py", "9_Challenges.py", "10_Recurring_Issues.py",
             "12_NOC Entries.py", "13_CEO_Dashboard.py", "14_Reports.py", "15_Predictions.py",
-            "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py"
+            "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py",
+            "20_Dispatcher_Performance.py", "21_Suggestions.py"
         ]
     },
     "NOC": {
@@ -67,7 +69,8 @@ POSITIONS = {
             "4_Engineer_Performance.py", "5_Regional_Analysis.py", "6_Service_Analysis.py",
             "7_Trends.py", "8_SLA_Analysis.py", "9_Challenges.py", "10_Recurring_Issues.py",
             "12_NOC Entries.py", "13_CEO_Dashboard.py", "14_Reports.py", "15_Predictions.py",
-            "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py"
+            "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py",
+            "20_Dispatcher_Performance.py", "21_Suggestions.py"
         ]
     }
 }
@@ -78,7 +81,8 @@ ALL_DASHBOARD_PAGES = [
     "4_Engineer_Performance.py", "5_Regional_Analysis.py", "6_Service_Analysis.py",
     "7_Trends.py", "8_SLA_Analysis.py", "9_Challenges.py", "10_Recurring_Issues.py",
     "11_Admin.py", "12_NOC Entries.py", "13_CEO_Dashboard.py", "14_Reports.py",
-    "15_Predictions.py", "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py"
+    "15_Predictions.py", "16_Ticket_Search.py", "18_Comparison.py", "19_Advanced_Predictions.py",
+    "20_Dispatcher_Performance.py", "21_Suggestions.py"
 ]
 
 # Convenience list of position names
