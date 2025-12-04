@@ -1,0 +1,50 @@
+# Fiber Maintenance Analytics System - Docker Compose
+# This file makes it easy to deploy and manage the application
+
+version: '3.8'
+
+services:
+  fiber-analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiber-maintenance-analytics
+    image: fiber-maintenance-analytics:latest
+    ports:
+      - "8501:8501"
+    environment:
+      # Database Configuration - Uses host.docker.internal for Windows Docker
+      # This connects to the MySQL database running on your Windows PC
+      - DB_NAME_1=fiber_maintainance_department
+      - DB_HOST_1=host.docker.internal
+      - DB_USER_1=root
+      - DB_PASSWORD_1=Fireside.Africa1or!
+      - DB_NAME_2=fiber_maintainance_department
+      - DB_HOST_2=host.docker.internal
+      - DB_USER_2=root
+      - DB_PASSWORD_2=Fireside.Africa1or!
+      # Streamlit Configuration
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    volumes:
+      # Persist data directory for suggestions and other app data
+      - ./data:/app/data
+      # Mount .streamlit config
+      - ./.streamlit:/app/.streamlit:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # For Windows Docker Desktop - allows connection to host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - fiber-network
+
+networks:
+  fiber-network:
+    driver: bridge

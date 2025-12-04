@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 def get_database_credentials(db_config: int) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str]]:
     """
-    Get database credentials from Streamlit secrets (cloud) or .env file (local).
-    Streamlit Cloud uses secrets.toml, local development uses .env file.
+    Get database credentials from environment variables, Streamlit secrets (cloud), or .env file (local).
+    Priority: Environment Variables > Streamlit Secrets > .env file
     
     Args:
         db_config: Database configuration number (1-6)
@@ -31,7 +31,17 @@ def get_database_credentials(db_config: int) -> Tuple[Optional[str], Optional[st
     user = None
     password = None
     
-    # Try Streamlit secrets first (for cloud deployment)
+    # Try environment variables first (for Docker deployment)
+    db_name = os.environ.get(f'DB_NAME_{db_config}')
+    host = os.environ.get(f'DB_HOST_{db_config}')
+    user = os.environ.get(f'DB_USER_{db_config}')
+    password = os.environ.get(f'DB_PASSWORD_{db_config}')
+    
+    if db_name and host and user and password:
+        logger.info(f"Using environment variables for database config {db_config}")
+        return db_name, host, user, password
+    
+    # Try Streamlit secrets second (for cloud deployment)
     try:
         if hasattr(st, 'secrets') and f'database_{db_config}' in st.secrets:
             secrets = st.secrets[f'database_{db_config}']
