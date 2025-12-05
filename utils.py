@@ -16,17 +16,20 @@ from config import (
     PERFORMANCE_GRADES, SLA_TARGET_HOURS
 )
 
-# Import local data_loader
-from data_loader import load_data
+# Import local data_loader - including the NEW cached loader
+from data_loader import load_data, load_cached_data
 
 
 # ==================== DATA LOADING ====================
 
 def load_data_from_db(start_date: str, end_date: str, db_config: int = 2) -> pd.DataFrame:
     """
-    Load data from database using the local data_loader module.
+    Load data from database using the cached data loader for multi-user performance.
+    
+    Uses load_cached_data which caches query results so multiple users
+    requesting the same date range get instant results from cache.
+    
     Falls back to empty dataframe if database connection fails.
-    Shows progress indicators during loading in the Streamlit UI.
     
     Args:
         start_date: Start date string (YYYY-MM-DD)
@@ -41,44 +44,34 @@ def load_data_from_db(start_date: str, end_date: str, db_config: int = 2) -> pd.
         st.error(f"Invalid database configuration: {db_config}. Only 1 (Remote) and 2 (Local) are supported.")
         return pd.DataFrame()
     
-    # Create a progress container for loading feedback
-    progress_container = st.container()
-    
-    with progress_container:
-        try:
-            db_name = "Remote Server" if db_config == 1 else "Local Server"
-            
-            # Use local data_loader with Streamlit progress container
-            df = load_data(
-                start_date=start_date,
-                end_date=end_date,
-                db_config=db_config,
-                chunk_size=1000,  # Load in chunks for progress tracking
-                show_progress=True,
-                progress_container=progress_container
-            )
-            
-            if df is not None and not df.empty:
-                return df
-            else:
-                st.warning("No data returned from database")
-                return pd.DataFrame()
-            
-        except Exception as e:
-            st.error(f"Database connection failed: {e}")
-            import traceback
-            st.code(traceback.format_exc())
+    try:
+        # Use the CACHED data loader for multi-user performance
+        # This returns cached results if the same date range was queried recently
+        df = load_cached_data(
+            start_date_str=str(start_date),
+            end_date_str=str(end_date),
+            db_config=db_config
+        )
+        
+        if df is not None and not df.empty:
+            return df
+        else:
+            st.warning("No data returned from database")
             return pd.DataFrame()
+        
+    except Exception as e:
+        st.error(f"Database connection failed: {e}")
+        import traceback
+        st.code(traceback.format_exc())
+        return pd.DataFrame()
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
+@st.cache_data(ttl=600, show_spinner=False, max_entries=50)
 def load_and_prepare_data(start_date: str, end_date: str, db_config: int = 2) -> pd.DataFrame:
-    """Load and prepare data with caching for performance."""
-    with st.spinner("Loading and preparing data..."):
-        df = load_data_from_db(start_date, end_date, db_config)
-        if not df.empty:
-            with st.spinner("Processing and transforming data..."):
-                df = prepare_dataframe(df)
+    """Load and prepare data with AGGRESSIVE caching for max performance."""
+    df = load_data_from_db(start_date, end_date, db_config)
+    if not df.empty:
+        df = prepare_dataframe(df, show_progress=False)  # Disable progress for cached loads
     return df
 
 

@@ -1,5 +1,5 @@
 # Streamlit Configuration for Fiber Maintenance Analytics System
-# This file configures the app's appearance and behavior
+# ============ MAXED OUT FOR MAXIMUM CONCURRENT USERS ============
 
 [theme]
 # Primary accent color for interactive elements
@@ -30,6 +30,22 @@ maxUploadSize = 200
 # Port (Streamlit Cloud will override this)
 port = 8501
 
+# ============ MAXED PERFORMANCE SETTINGS ============
+# Maximum message size for WebSocket (500MB)
+maxMessageSize = 500
+
+# Run in headless mode (required for production)
+headless = true
+
+# WebSocket compression for faster data transfer
+enableWebsocketCompression = true
+
+# Disable file watcher in production (major performance boost)
+fileWatcherType = "none"
+
+# Allow all origins for CORS when using zrok
+enableStaticServing = true
+
 [browser]
 # Gather usage stats
 gatherUsageStats = false
@@ -37,9 +53,35 @@ gatherUsageStats = false
 # Server address
 serverAddress = "0.0.0.0"
 
+# Don't open browser automatically
+serverPort = 8501
+
 [runner]
 # Magic commands enabled
 magicEnabled = true
 
-# Fast reload for development
-fastReruns = true
+# Disable fast reruns in production for stability
+fastReruns = false
+
+# Enforce serializable session state for multi-user safety
+enforceSerializableSessionState = true
+
+# Post script message is disabled for performance
+postScriptGC = true
+
+[client]
+# Show error details is disabled in production
+showErrorDetails = false
+
+# Toolbar mode (minimal for performance)
+toolbarMode = "minimal"
+
+[global]
+# Disable development mode for production
+developmentMode = false
+
+# Show warning on direct execution
+showWarningOnDirectExecution = false
+
+# Suppress deprecation warnings
+suppressDeprecationWarnings = true

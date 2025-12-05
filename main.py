@@ -21,27 +21,22 @@ from auth import check_authentication, get_current_user, logout, get_auth_manage
 current_user = get_current_user()
 auth_manager = get_auth_manager()
 
-# Custom CSS for STUNNING dark theme
+# Custom CSS for STUNNING dark theme - OPTIMIZED for multi-user performance
+# Reduced animations to prevent client-side CPU overhead
 st.markdown("""
 <style>
     /* ============================================== */
     /* 🌟 STUNNING DARK THEME - PREMIUM DESIGN 🌟     */
+    /* Performance optimized: reduced animations     */
     /* ============================================== */
     
-    /* Animated background with gradient */
+    /* Static gradient background (removed animation for performance) */
     .stApp {
-        background: linear-gradient(-45deg, #0f172a, #1a0d2e, #0f172a, #1e1033);
-        background-size: 400% 400%;
-        animation: gradientBG 15s ease infinite;
+        background: linear-gradient(135deg, #0f172a 0%, #1a0d2e 50%, #0f172a 100%);
+        background-attachment: fixed;
     }
     
-    @keyframes gradientBG {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    
-    /* Glowing particles overlay effect */
+    /* Subtle static overlay effect (removed animation) */
     .stApp::before {
         content: '';
         position: fixed;
@@ -84,7 +79,7 @@ st.markdown("""
         letter-spacing: -0.5px;
     }
     
-    /* Section headers - animated gradient */
+    /* Section headers - static gradient border */
     .stMarkdown h3 {
         color: #a78bfa !important;
         font-weight: 700 !important;
@@ -111,7 +106,7 @@ st.markdown("""
     }
     
     /* ============================================== */
-    /* 🎨 STUNNING METRIC CARDS                       */
+    /* 🎨 STUNNING METRIC CARDS (optimized)          */
     /* ============================================== */
     
     [data-testid="stMetric"] {
@@ -122,11 +117,12 @@ st.markdown("""
         box-shadow: 
             0 10px 40px rgba(0, 0, 0, 0.4),
             inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.3s ease, border-color 0.3s ease;
         position: relative;
         overflow: hidden;
     }
     
+    /* Static gradient border (removed animation) */
     [data-testid="stMetric"]::before {
         content: '';
         position: absolute;
@@ -135,21 +131,11 @@ st.markdown("""
         right: 0;
         height: 3px;
         background: linear-gradient(90deg, #f97316, #a855f7, #667eea);
-        animation: borderGlow 3s ease-in-out infinite;
-    }
-    
-    @keyframes borderGlow {
-        0%, 100% { opacity: 0.5; }
-        50% { opacity: 1; }
     }
     
     [data-testid="stMetric"]:hover {
-        transform: translateY(-5px) scale(1.02);
+        transform: translateY(-3px);
         border-color: rgba(168, 85, 247, 0.4);
-        box-shadow: 
-            0 20px 60px rgba(249, 115, 22, 0.2),
-            0 15px 40px rgba(168, 85, 247, 0.15),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     
     [data-testid="stMetric"] label {

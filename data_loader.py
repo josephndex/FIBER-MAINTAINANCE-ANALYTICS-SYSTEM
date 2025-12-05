@@ -9,6 +9,7 @@ from typing import Union, Tuple, Optional
 from datetime import datetime
 import logging
 import streamlit as st
+import hashlib
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -70,6 +71,103 @@ def get_database_credentials(db_config: int) -> Tuple[Optional[str], Optional[st
         logger.info(f"Using .env file for database config {db_config}")
     
     return db_name, host, user, password
+
+
+# ============================================================
+# CACHED DATABASE ENGINE - Shared across all users for efficiency
+# ============================================================
+@st.cache_resource(show_spinner=False)
+def get_cached_db_engine(db_config: int = 1):
+    """
+    Get a cached database engine shared across ALL users.
+    MAXIMIZED for high concurrent user load.
+    
+    Uses st.cache_resource so the engine is shared across all sessions.
+    """
+    try:
+        db_name, host, user, password = get_database_credentials(db_config)
+        
+        if not all([db_name, host, user, password]):
+            logger.error("Missing database credentials")
+            return None
+        
+        connection_string = f"mysql+mysqlconnector://{user}:{password}@{host}/{db_name}"
+        engine = create_engine(
+            connection_string,
+            pool_size=50,           # MAXED: Large connection pool
+            max_overflow=100,       # MAXED: Allow many overflow connections
+            pool_pre_ping=True,     # Verify connections before use
+            pool_recycle=900,       # Recycle connections every 15 mins
+            pool_timeout=60,        # Wait up to 60s for a connection
+            pool_use_lifo=True,     # LIFO for better connection reuse
+            echo=False
+        )
+        
+        # Test connection
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        
+        logger.info(f"Created MAXED cached database engine for config {db_config}")
+        return engine
+    except Exception as e:
+        logger.error(f"Failed to create cached database engine: {e}")
+        return None
+
+
+# ============================================================
+# CACHED DATA LOADER - Cache query results for all users
+# ============================================================
+@st.cache_data(ttl=600, show_spinner=False, max_entries=100)  # Cache 10 mins, up to 100 queries
+def load_cached_data(
+    start_date_str: str,
+    end_date_str: str,
+    db_config: int = 1
+) -> pd.DataFrame:
+    """
+    Load data with AGGRESSIVE caching. Same query parameters return cached results.
+    
+    MAXIMIZED for high concurrent user load:
+    - TTL of 600 seconds (10 mins) for longer cache retention
+    - max_entries=100 to cache up to 100 different query results
+    
+    Args:
+        start_date_str: Start date as string (for cache key hashing)
+        end_date_str: End date as string (for cache key hashing)
+        db_config: Database configuration (1 or 2)
+        
+    Returns:
+        pandas.DataFrame with ticket data
+    """
+    logger.info(f"Cache MISS - Loading fresh data for {start_date_str} to {end_date_str}")
+    
+    try:
+        engine = get_cached_db_engine(db_config)
+        if engine is None:
+            return pd.DataFrame()
+        
+        start_date = pd.to_datetime(start_date_str)
+        end_date = pd.to_datetime(end_date_str)
+        
+        # Determine table and column
+        table_name = "engineered_tickets"
+        column = "ESCALATED_TIME"
+        
+        query = text(f"""
+            SELECT *
+            FROM {table_name}
+            WHERE {column} BETWEEN :start_date AND :end_date
+        """)
+        
+        params = {"start_date": start_date, "end_date": end_date}
+        
+        df = pd.read_sql(query, engine, params=params)
+        logger.info(f"Loaded {len(df)} rows from database (cached)")
+        
+        return df
+        
+    except Exception as e:
+        logger.error(f"Error loading cached data: {e}")
+        return pd.DataFrame()
 
 
 def get_db_engine(db_config: int = 1):

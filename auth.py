@@ -173,14 +173,16 @@ class AuthManager:
                 logger.error(f"Missing database credentials: {', '.join(missing_vars)}")
                 return False
             
-            # Create engine
+            # Create engine with MAXED connection pool for multi-user
             engine_url = f"mysql+mysqlconnector://{user}:{password}@{host}/{db_name}"
             self.engine = create_engine(
                 engine_url,
-                pool_size=5,
-                max_overflow=10,
+                pool_size=30,          # MAXED: Large pool for auth
+                max_overflow=50,       # MAXED: Many overflow connections
                 pool_pre_ping=True,
-                pool_recycle=3600,
+                pool_recycle=1800,     # Recycle every 30 mins
+                pool_timeout=60,       # Wait up to 60s
+                pool_use_lifo=True,    # Better connection reuse
                 echo=False
             )
             
