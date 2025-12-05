@@ -711,7 +711,7 @@ with tab3:
                 x='Total_Tickets',
                 y='SLA_Compliance',
                 size='Efficiency_Score',
-                color='Grade',
+                color='SLA_Grade',
                 color_discrete_map={'A+': '#10b981', 'A': '#22c55e', 'B': '#f59e0b', 
                                    'C': '#f97316', 'D': '#ef4444', 'F': '#dc2626'},
                 hover_name='Engineer',
@@ -729,8 +729,8 @@ with tab3:
         
         with col2:
             st.markdown("**🏆 Top 10 Engineers**")
-            top10 = engineer_perf.nlargest(10, 'Efficiency_Score')[['Engineer', 'Total_Tickets', 'SLA_Compliance', 'Grade']].copy()
-            top10.columns = ['Engineer', 'Tickets', 'SLA %', 'Grade']
+            top10 = engineer_perf.nlargest(10, 'Efficiency_Score')[['Engineer', 'Total_Tickets', 'SLA_Compliance', 'SLA_Grade']].copy()
+            top10.columns = ['Engineer', 'Tickets', 'SLA %', 'SLA Grade']
             top10['SLA %'] = top10['SLA %'].round(1)
             st.dataframe(top10, use_container_width=True, hide_index=True)
     else:

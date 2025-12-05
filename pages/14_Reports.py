@@ -258,7 +258,7 @@ def generate_pdf_report(df, kpis, cluster_perf, engineer_perf, report_type, date
         if engineer_perf is not None and len(engineer_perf) > 0:
             story.append(Paragraph("Top 15 Engineers by Performance", heading_style))
             top_engineers = engineer_perf.head(15)
-            eng_data = [['Rank', 'Engineer', 'Tickets', 'SLA %', 'MTTR', 'Grade']]
+            eng_data = [['Rank', 'Engineer', 'Tickets', 'SLA %', 'MTTR', 'SLA Grade']]
             for idx, (_, row) in enumerate(top_engineers.iterrows(), 1):
                 eng_data.append([
                     str(idx),
@@ -266,7 +266,7 @@ def generate_pdf_report(df, kpis, cluster_perf, engineer_perf, report_type, date
                     f"{row['Total_Tickets']:,}",
                     f"{row['SLA_Compliance']:.1f}%",
                     f"{row['Avg_MTTR_Hours']:.2f}h",
-                    row['Grade']
+                    row['SLA_Grade']
                 ])
             
             eng_table = Table(eng_data, colWidths=[40, 130, 60, 60, 60, 50])
@@ -285,14 +285,14 @@ def generate_pdf_report(df, kpis, cluster_perf, engineer_perf, report_type, date
             # Bottom 10 Engineers
             story.append(Paragraph("Engineers Needing Improvement (Bottom 10)", heading_style))
             bottom_engineers = engineer_perf.tail(10).iloc[::-1]
-            eng_data2 = [['Engineer', 'Tickets', 'SLA %', 'MTTR', 'Grade']]
+            eng_data2 = [['Engineer', 'Tickets', 'SLA %', 'MTTR', 'SLA Grade']]
             for _, row in bottom_engineers.iterrows():
                 eng_data2.append([
                     str(row['Engineer'])[:25],
                     f"{row['Total_Tickets']:,}",
                     f"{row['SLA_Compliance']:.1f}%",
                     f"{row['Avg_MTTR_Hours']:.2f}h",
-                    row['Grade']
+                    row['SLA_Grade']
                 ])
             
             eng_table2 = Table(eng_data2, colWidths=[150, 70, 70, 70, 50])
@@ -564,10 +564,10 @@ def generate_html_report(df, kpis, cluster_perf, engineer_perf, report_type, dat
             <div class="section">
                 <h2>👷 Top 15 Engineers by Performance</h2>
                 <table>
-                    <tr><th class="green">Rank</th><th class="green">Engineer</th><th class="green">Tickets</th><th class="green">SLA %</th><th class="green">MTTR</th><th class="green">Grade</th></tr>
+                    <tr><th class="green">Rank</th><th class="green">Engineer</th><th class="green">Tickets</th><th class="green">SLA %</th><th class="green">MTTR</th><th class="green">SLA Grade</th></tr>
             """
             for idx, (_, row) in enumerate(engineer_perf.head(15).iterrows(), 1):
-                grade_class = 'a' if row['Grade'] in ['A+', 'A'] else 'b' if row['Grade'] == 'B' else 'c'
+                grade_class = 'a' if row['SLA_Grade'] in ['A+', 'A'] else 'b' if row['SLA_Grade'] == 'B' else 'c'
                 html += f"""
                     <tr>
                         <td>{idx}</td>
@@ -575,7 +575,7 @@ def generate_html_report(df, kpis, cluster_perf, engineer_perf, report_type, dat
                         <td>{row['Total_Tickets']:,}</td>
                         <td>{row['SLA_Compliance']:.1f}%</td>
                         <td>{row['Avg_MTTR_Hours']:.2f}h</td>
-                        <td class="grade-{grade_class}">{row['Grade']}</td>
+                        <td class="grade-{grade_class}">{row['SLA_Grade']}</td>
                     </tr>
                 """
             html += "</table></div>"
@@ -585,17 +585,17 @@ def generate_html_report(df, kpis, cluster_perf, engineer_perf, report_type, dat
             <div class="section">
                 <h2>⚠️ Engineers Needing Improvement</h2>
                 <table>
-                    <tr><th class="red">Engineer</th><th class="red">Tickets</th><th class="red">SLA %</th><th class="red">MTTR</th><th class="red">Grade</th></tr>
+                    <tr><th class="red">Engineer</th><th class="red">Tickets</th><th class="red">SLA %</th><th class="red">MTTR</th><th class="red">SLA Grade</th></tr>
             """
             for _, row in engineer_perf.tail(10).iloc[::-1].iterrows():
-                grade_class = 'a' if row['Grade'] in ['A+', 'A'] else 'b' if row['Grade'] == 'B' else 'd'
+                grade_class = 'a' if row['SLA_Grade'] in ['A+', 'A'] else 'b' if row['SLA_Grade'] == 'B' else 'd'
                 html += f"""
                     <tr class="alert">
                         <td>{row['Engineer']}</td>
                         <td>{row['Total_Tickets']:,}</td>
                         <td>{row['SLA_Compliance']:.1f}%</td>
                         <td>{row['Avg_MTTR_Hours']:.2f}h</td>
-                        <td class="grade-{grade_class}">{row['Grade']}</td>
+                        <td class="grade-{grade_class}">{row['SLA_Grade']}</td>
                     </tr>
                 """
             html += "</table></div>"

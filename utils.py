@@ -442,13 +442,23 @@ def get_cluster_grade(score: float) -> str:
 
 # ==================== ENGINEER PERFORMANCE ====================
 
-def calculate_engineer_performance(df: pd.DataFrame, exclude_alarms: bool = True) -> pd.DataFrame:
+def calculate_engineer_performance(df: pd.DataFrame, exclude_alarms: bool = True, excluded_engineers: list = None) -> pd.DataFrame:
     """
     Calculate engineer performance metrics.
     Combines data from ENGINEER1, ENGINEER2, ENGINEER3 columns.
+    
+    Args:
+        df: DataFrame with ticket data
+        exclude_alarms: Whether to exclude alarm tickets
+        excluded_engineers: List of engineer names to exclude from analysis
     """
     if exclude_alarms:
         df = filter_non_alarm_data(df)
+    
+    # Import default exclusions if none provided
+    if excluded_engineers is None:
+        from config import EXCLUDED_ENGINEERS
+        excluded_engineers = EXCLUDED_ENGINEERS
     
     engineer_cols = ['ENGINEER1', 'ENGINEER2', 'ENGINEER3']
     existing_cols = [c for c in engineer_cols if c in df.columns]
@@ -468,6 +478,14 @@ def calculate_engineer_performance(df: pd.DataFrame, exclude_alarms: bool = True
     
     engineer_df = pd.concat(engineer_data, ignore_index=True)
     engineer_df = engineer_df[engineer_df['ENGINEER'].str.strip().str.upper() != 'NONE']
+    
+    # Exclude specified engineers
+    if excluded_engineers:
+        excluded_upper = [e.upper() for e in excluded_engineers]
+        engineer_df = engineer_df[~engineer_df['ENGINEER'].str.upper().isin(excluded_upper)]
+    
+    if engineer_df.empty:
+        return pd.DataFrame()
     
     # Calculate metrics
     perf_df = engineer_df.groupby('ENGINEER').agg(
@@ -501,8 +519,8 @@ def calculate_engineer_performance(df: pd.DataFrame, exclude_alarms: bool = True
     # Calculate efficiency score
     perf_df['Efficiency_Score'] = (perf_df['SLA_Compliance'] / (perf_df['Avg_MTTR_Hours'] + 1)) * 10
     
-    # Assign grades
-    perf_df['Grade'] = perf_df['SLA_Compliance'].apply(get_engineer_grade)
+    # Assign SLA grades
+    perf_df['SLA_Grade'] = perf_df['SLA_Compliance'].apply(get_engineer_grade)
     
     # Sort by efficiency
     perf_df = perf_df.sort_values('Efficiency_Score', ascending=False).reset_index(drop=True)

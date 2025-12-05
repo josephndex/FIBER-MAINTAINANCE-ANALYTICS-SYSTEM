@@ -6,6 +6,7 @@ import streamlit as st
 import sys
 import re
 import time
+from datetime import datetime
 sys.path.insert(0, '..')
 
 from config import APP_TITLE, DEVELOPER_NAME
@@ -454,6 +455,7 @@ def render_login_form():
                 st.session_state['authenticated'] = True
                 st.session_state['user'] = user_data
                 st.session_state['show_welcome'] = True
+                st.session_state['last_activity'] = datetime.now()  # Start activity tracking
                 
                 # Get position display name
                 position = user_data.get('position', 'NOC')

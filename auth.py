@@ -921,6 +921,10 @@ def get_session_timeout() -> int:
     return 30
 
 
+# Session timeout settings
+SESSION_WARNING_SECONDS = 180  # 3 minutes - show warning
+SESSION_TIMEOUT_SECONDS = 300  # 5 minutes - auto logout
+
 def check_session_timeout() -> bool:
     """
     Check if the current session has timed out.
@@ -935,9 +939,18 @@ def check_session_timeout() -> bool:
             if isinstance(last_activity, str):
                 last_activity = datetime.fromisoformat(last_activity)
             
-            timeout_minutes = get_session_timeout()
-            if datetime.now() - last_activity > timedelta(minutes=timeout_minutes):
+            inactivity = (datetime.now() - last_activity).total_seconds()
+            
+            # Check if timed out (5 minutes)
+            if inactivity >= SESSION_TIMEOUT_SECONDS:
                 return False  # Session timed out
+            
+            # Check if should show warning (3 minutes)
+            if inactivity >= SESSION_WARNING_SECONDS:
+                st.session_state['show_timeout_warning'] = True
+                st.session_state['timeout_remaining'] = int(SESSION_TIMEOUT_SECONDS - inactivity)
+            else:
+                st.session_state['show_timeout_warning'] = False
         except:
             pass
     
@@ -958,7 +971,7 @@ def check_authentication() -> bool:
     if not st.session_state.get('authenticated', False):
         return False
     
-    # Check session timeout
+    # Check session timeout (only matters if browser was closed and reopened)
     if not check_session_timeout():
         # Session timed out - log out user
         user = st.session_state.get('user')
@@ -973,14 +986,14 @@ def check_authentication() -> bool:
             )
         
         # Clear session
-        for key in ['authenticated', 'user', 'last_activity']:
+        for key in ['authenticated', 'user', 'last_activity', 'show_timeout_warning']:
             if key in st.session_state:
                 del st.session_state[key]
         
         st.warning(f"⏰ Your session has timed out due to inactivity. Please log in again.")
         return False
     
-    # Update activity timestamp
+    # Update activity timestamp - user is actively using the app
     update_activity()
     return True
 

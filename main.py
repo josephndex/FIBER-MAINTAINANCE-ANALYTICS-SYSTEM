@@ -968,8 +968,161 @@ advanced_predictions_page = st.Page("pages/19_Advanced_Predictions.py", title="A
 dispatcher_page = st.Page("pages/20_Dispatcher_Performance.py", title="Dispatcher Performance")
 suggestions_page = st.Page("pages/21_Suggestions.py", title="Suggestions")
 
+
+def show_welcome_screen():
+    """Display a stunning full-screen welcome with floating orbs and dismiss button"""
+    user = st.session_state.get('user')
+    if not st.session_state.get('welcome_shown', False) and user:
+        st.session_state.welcome_shown = True
+        
+        user_name = user.get('full_name', user.get('username', 'User'))
+        position = user.get('position', 'Staff')
+        
+        # Use components.html for proper rendering
+        import streamlit.components.v1 as components
+        
+        welcome_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                @keyframes float {{
+                    0%, 100% {{ transform: translateY(0px) rotate(0deg); }}
+                    25% {{ transform: translateY(-20px) rotate(5deg); }}
+                    50% {{ transform: translateY(-10px) rotate(-5deg); }}
+                    75% {{ transform: translateY(-25px) rotate(3deg); }}
+                }}
+                @keyframes pulse-glow {{
+                    0%, 100% {{ box-shadow: 0 0 60px rgba(249, 115, 22, 0.6), 0 0 120px rgba(168, 85, 247, 0.4); }}
+                    50% {{ box-shadow: 0 0 100px rgba(249, 115, 22, 0.8), 0 0 180px rgba(168, 85, 247, 0.6); }}
+                }}
+                @keyframes slideUp {{
+                    from {{ transform: translateY(50px); opacity: 0; }}
+                    to {{ transform: translateY(0); opacity: 1; }}
+                }}
+                @keyframes glow-text {{
+                    0%, 100% {{ text-shadow: 0 0 20px rgba(249, 115, 22, 0.5), 0 0 40px rgba(168, 85, 247, 0.3); }}
+                    50% {{ text-shadow: 0 0 40px rgba(249, 115, 22, 0.8), 0 0 60px rgba(168, 85, 247, 0.5); }}
+                }}
+                body {{
+                    font-family: 'Segoe UI', sans-serif;
+                    background: radial-gradient(ellipse at center, #1a0d2e 0%, #0f172a 50%, #0a0a0f 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    overflow: hidden;
+                }}
+                .orb {{
+                    position: absolute;
+                    border-radius: 50%;
+                    filter: blur(1px);
+                    animation: float 6s ease-in-out infinite;
+                }}
+                .orb-1 {{
+                    width: 300px; height: 300px;
+                    background: radial-gradient(circle, rgba(249, 115, 22, 0.4) 0%, transparent 70%);
+                    top: 10%; left: 10%;
+                }}
+                .orb-2 {{
+                    width: 400px; height: 400px;
+                    background: radial-gradient(circle, rgba(168, 85, 247, 0.35) 0%, transparent 70%);
+                    top: 60%; right: 5%;
+                    animation-delay: -2s;
+                }}
+                .orb-3 {{
+                    width: 250px; height: 250px;
+                    background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+                    bottom: 10%; left: 20%;
+                    animation-delay: -4s;
+                }}
+                .welcome-content {{
+                    position: relative;
+                    z-index: 10;
+                    text-align: center;
+                    animation: slideUp 0.8s ease;
+                    padding: 2rem;
+                }}
+                .welcome-icon {{ font-size: 4rem; margin-bottom: 1rem; animation: float 3s ease-in-out infinite; }}
+                .welcome-title {{
+                    font-size: 3rem;
+                    font-weight: 900;
+                    background: linear-gradient(135deg, #f97316 0%, #ec4899 30%, #a855f7 60%, #667eea 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    margin-bottom: 0.5rem;
+                    animation: glow-text 3s ease-in-out infinite;
+                }}
+                .welcome-name {{
+                    font-size: 1.8rem;
+                    font-weight: 700;
+                    color: #f1f5f9;
+                    margin-bottom: 0.3rem;
+                }}
+                .welcome-position {{
+                    font-size: 1.1rem;
+                    color: #a78bfa;
+                    margin-bottom: 1.5rem;
+                }}
+                .dismiss-btn {{
+                    background: linear-gradient(135deg, #f97316 0%, #a855f7 100%);
+                    border: none;
+                    padding: 0.8rem 2.5rem;
+                    font-size: 1rem;
+                    font-weight: 700;
+                    color: white;
+                    border-radius: 50px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    animation: pulse-glow 2s ease-in-out infinite;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                }}
+                .dismiss-btn:hover {{
+                    transform: scale(1.05);
+                }}
+                .crafted-by {{
+                    margin-top: 1.5rem;
+                    color: #64748b;
+                    font-size: 0.85rem;
+                }}
+                .crafted-by .name {{
+                    color: #f97316;
+                    font-weight: 600;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+            
+            <div class="welcome-content">
+                <div class="welcome-icon">🔥</div>
+                <h1 class="welcome-title">Welcome to FIRESIDE</h1>
+                <p class="welcome-name">{user_name}</p>
+                <p class="welcome-position">Logged in as {position}</p>
+                <button class="dismiss-btn" onclick="window.parent.document.querySelector('iframe').style.display='none'">
+                    Enter Dashboard
+                </button>
+                <div class="crafted-by">
+                    Crafted with passion by <span class="name">Joseph Nderitu</span>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        components.html(welcome_html, height=600)
+
+
 # Create navigation - Login is default if not authenticated
 if check_authentication():
+    # Show welcome screen on first load after login
+    show_welcome_screen()
+    
     pg = st.navigation(pages=[
         home_page,
         intro_page,
