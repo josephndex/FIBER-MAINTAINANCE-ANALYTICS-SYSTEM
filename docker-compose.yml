@@ -21,13 +21,11 @@ services:
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
-      # ============ MAXED OUT PERFORMANCE SETTINGS ============
+      # ============ OPTIMIZED PERFORMANCE SETTINGS FOR 16GB MACHINE ============
       - STREAMLIT_SERVER_HEADLESS=true
       - STREAMLIT_SERVER_FILE_WATCHER_TYPE=none
       - STREAMLIT_SERVER_ENABLE_WEBSOCKET_COMPRESSION=true
-      - STREAMLIT_SERVER_MAX_MESSAGE_SIZE=500
-      - STREAMLIT_RUNNER_FAST_RERUNS=false
-      - STREAMLIT_GLOBAL_DEVELOPMENT_MODE=false
+      - STREAMLIT_SERVER_MAX_MESSAGE_SIZE=200
       # Python optimizations
       - PYTHONOPTIMIZE=2
       - PYTHONDONTWRITEBYTECODE=1
@@ -36,15 +34,16 @@ services:
       - ./data:/app/data
       - ./.streamlit:/app/.streamlit:ro
     restart: unless-stopped
-    # ============ MAXED OUT RESOURCE ALLOCATION ============
+    # ============ OPTIMIZED RESOURCE ALLOCATION FOR 16GB MACHINE ============
+    # Reduced for better performance when RAM is limited
     deploy:
       resources:
         limits:
-          cpus: '4.0'
-          memory: 4G
+          cpus: '2.0'
+          memory: 2G
         reservations:
-          cpus: '1.0'
-          memory: 1G
+          cpus: '0.5'
+          memory: 512M
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
       interval: 30s

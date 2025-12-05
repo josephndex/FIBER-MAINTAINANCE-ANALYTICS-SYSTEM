@@ -1,5 +1,5 @@
 # Fiber Maintenance Analytics System - Docker Image
-# MAXED OUT FOR MAXIMUM CONCURRENT USERS
+# OPTIMIZED FOR 16GB MACHINE WITH 5-10 CONCURRENT USERS
 # Based on Python 3.11 slim for smaller image size
 
 FROM python:3.11-slim
@@ -7,7 +7,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# ============ MAXED OUT ENVIRONMENT VARIABLES ============
+# ============ OPTIMIZED ENVIRONMENT VARIABLES ============
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONOPTIMIZE=2 \
@@ -17,9 +17,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_SERVER_FILE_WATCHER_TYPE=none \
     STREAMLIT_SERVER_ENABLE_WEBSOCKET_COMPRESSION=true \
-    STREAMLIT_SERVER_MAX_MESSAGE_SIZE=500 \
-    STREAMLIT_RUNNER_FAST_RERUNS=false \
-    STREAMLIT_GLOBAL_DEVELOPMENT_MODE=false \
+    STREAMLIT_SERVER_MAX_MESSAGE_SIZE=200 \
     STREAMLIT_CLIENT_TOOLBAR_MODE=minimal
 
 # Install system dependencies required for MySQL connector and other packages
@@ -55,15 +53,13 @@ EXPOSE 8501
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl --fail http://localhost:8501/_stcore/health || exit 1
 
-# Run Streamlit with MAXED OUT settings for multi-user
+# Run Streamlit with OPTIMIZED settings for multi-user on 16GB machine
 CMD ["streamlit", "run", "main.py", \
      "--server.port=8501", \
      "--server.address=0.0.0.0", \
      "--server.headless=true", \
      "--server.fileWatcherType=none", \
      "--server.enableWebsocketCompression=true", \
-     "--server.maxMessageSize=500", \
-     "--runner.fastReruns=false", \
+     "--server.maxMessageSize=200", \
      "--browser.gatherUsageStats=false", \
-     "--global.developmentMode=false", \
      "--client.toolbarMode=minimal"]

@@ -1,5 +1,5 @@
 # Streamlit Configuration for Fiber Maintenance Analytics System
-# ============ MAXED OUT FOR MAXIMUM CONCURRENT USERS ============
+# ============ OPTIMIZED FOR 16GB MACHINE WITH 5-10 CONCURRENT USERS ============
 
 [theme]
 # Primary accent color for interactive elements
@@ -18,21 +18,21 @@ textColor = "#f1f5f9"
 font = "sans serif"
 
 [server]
-# Enable CORS for the server
-enableCORS = false
+# CORS enabled (required when XSRF protection is on)
+enableCORS = true
 
 # Enable XSRF protection
 enableXsrfProtection = true
 
-# Max upload size in MB
-maxUploadSize = 200
+# Max upload size in MB (reduced for memory efficiency)
+maxUploadSize = 100
 
 # Port (Streamlit Cloud will override this)
 port = 8501
 
-# ============ MAXED PERFORMANCE SETTINGS ============
-# Maximum message size for WebSocket (500MB)
-maxMessageSize = 500
+# ============ OPTIMIZED PERFORMANCE SETTINGS ============
+# Maximum message size for WebSocket (200MB - reduced for memory)
+maxMessageSize = 200
 
 # Run in headless mode (required for production)
 headless = true
@@ -44,7 +44,10 @@ enableWebsocketCompression = true
 fileWatcherType = "none"
 
 # Allow all origins for CORS when using zrok
-enableStaticServing = true
+enableStaticServing = false
+
+# Limit concurrent WebSocket connections per session
+runOnSave = false
 
 [browser]
 # Gather usage stats
@@ -60,28 +63,9 @@ serverPort = 8501
 # Magic commands enabled
 magicEnabled = true
 
-# Disable fast reruns in production for stability
-fastReruns = false
-
-# Enforce serializable session state for multi-user safety
-enforceSerializableSessionState = true
-
-# Post script message is disabled for performance
-postScriptGC = true
-
 [client]
 # Show error details is disabled in production
 showErrorDetails = false
 
 # Toolbar mode (minimal for performance)
 toolbarMode = "minimal"
-
-[global]
-# Disable development mode for production
-developmentMode = false
-
-# Show warning on direct execution
-showWarningOnDirectExecution = false
-
-# Suppress deprecation warnings
-suppressDeprecationWarnings = true
