@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Fiber Analytics",
+    "slug": "fiber-maintenance-analytics",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fireside.fiberanalytics"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.fireside.fiberanalytics"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "http://100.83.80.26:8000",
+      "eas": {
+        "projectId": "your-eas-project-id"
+      }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
+  }
+}

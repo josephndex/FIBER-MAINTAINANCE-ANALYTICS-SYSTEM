@@ -1,3 +1,0 @@
-# Streamlit Cloud Runtime Configuration
-# Python version for deployment
-python_version = "3.11"

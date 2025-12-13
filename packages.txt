@@ -1,2 +1,0 @@
-# System packages required for Streamlit Cloud deployment
-# These are installed via apt-get before pip packages
