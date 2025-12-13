@@ -31,7 +31,7 @@ jobs:
 
       - name: Build Windows EXE
         working-directory: desktop_app/electron
-        run: npm run build:win
+        run: npx electron-builder --win --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,6 +39,7 @@ jobs:
         working-directory: desktop_app/electron
         run: dir dist
         shell: cmd
+        continue-on-error: true
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -71,13 +72,14 @@ jobs:
 
       - name: Build Linux AppImage
         working-directory: desktop_app/electron
-        run: npm run build:linux
+        run: npx electron-builder --linux --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List dist folder
         working-directory: desktop_app/electron
-        run: ls -la dist/
+        run: ls -la dist/ || echo "No dist folder"
+        continue-on-error: true
 
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -111,13 +113,14 @@ jobs:
 
       - name: Build macOS DMG
         working-directory: desktop_app/electron
-        run: npm run build:mac
+        run: npx electron-builder --mac --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List dist folder
         working-directory: desktop_app/electron
-        run: ls -la dist/
+        run: ls -la dist/ || echo "No dist folder"
+        continue-on-error: true
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
