@@ -1,4 +1,4 @@
-name: Build Mobile Apps
+name: Build Android APK
 
 on:
   push:
@@ -38,9 +38,8 @@ jobs:
       - name: Configure EAS Project
         working-directory: mobile_app
         run: |
-          # Create or update eas.json with project config
+          echo "Configuring EAS project for owner: nderitu"
           npx eas-cli project:init --non-interactive || true
-          npx eas-cli project:info || echo "Project info not available yet"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -59,68 +58,10 @@ jobs:
           echo "============================================"
           echo ""
           echo "To download your APK:"
-          echo "1. Go to https://expo.dev"
-          echo "2. Sign in with your Expo account"
-          echo "3. Find 'fiber-maintenance-analytics' project"
-          echo "4. Go to Builds tab"
-          echo "5. Download the APK once complete (~10-15 min)"
+          echo "1. Go to https://expo.dev/accounts/nderitu"
+          echo "2. Find 'fiber-maintenance-analytics' project"
+          echo "3. Go to Builds tab"
+          echo "4. Download the APK once complete (~10-15 min)"
           echo ""
-          echo "Share the APK with friends for Android testing!"
-          echo "============================================"
-
-  # =====================================================
-  # BUILD iOS IPA using EAS Build
-  # =====================================================
-  build-ios:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install dependencies
-        working-directory: mobile_app
-        run: npm install
-
-      - name: Configure EAS Project
-        working-directory: mobile_app
-        run: |
-          npx eas-cli project:init --non-interactive || true
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Build iOS with EAS
-        working-directory: mobile_app
-        run: |
-          echo "Starting iOS build..."
-          npx eas-cli build --platform ios --profile preview --non-interactive --no-wait
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Build Info
-        run: |
-          echo "============================================"
-          echo "iOS Build Submitted to EAS!"
-          echo "============================================"
-          echo ""
-          echo "To test on iPhones:"
-          echo "1. Go to https://expo.dev"
-          echo "2. Sign in with your Expo account"
-          echo "3. Find 'fiber-maintenance-analytics' project"
-          echo "4. Go to Builds tab"
-          echo "5. For simulator: Download and run on Mac"
-          echo "6. For real devices: Use TestFlight or Ad-Hoc distribution"
-          echo ""
-          echo "Note: Real iPhone testing requires Apple Developer ($99/year)"
+          echo "Share the APK with friends for testing!"
           echo "============================================"
