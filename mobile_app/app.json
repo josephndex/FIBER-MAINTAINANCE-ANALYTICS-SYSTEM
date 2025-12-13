@@ -29,10 +29,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "apiUrl": "http://100.83.80.26:8000",
-      "eas": {
-        "projectId": "your-eas-project-id"
-      }
+      "apiUrl": "http://100.83.80.26:8000"
     },
     "plugins": [
       "expo-secure-store"
