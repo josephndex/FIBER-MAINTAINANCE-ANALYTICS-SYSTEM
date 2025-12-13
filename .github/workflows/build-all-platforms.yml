@@ -130,7 +130,7 @@ jobs:
           if-no-files-found: warn
 
   # =====================================================
-  # BUILD ANDROID APK (using EAS Build)
+  # BUILD ANDROID APK (using Expo prebuild + Gradle)
   # =====================================================
   build-android:
     runs-on: ubuntu-latest
@@ -142,31 +142,42 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli eas-cli
 
       - name: Install dependencies
         working-directory: mobile_app
         run: npm install
 
-      - name: Build Android APK with EAS
+      - name: Expo prebuild
         working-directory: mobile_app
-        run: eas build --platform android --profile preview --non-interactive --local
+        run: npx expo prebuild --platform android --clean
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Find APK file
+      - name: Build APK with Gradle
+        working-directory: mobile_app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Find and copy APK
         working-directory: mobile_app
         run: |
-          find . -name "*.apk" -type f
           mkdir -p dist
           find . -name "*.apk" -type f -exec cp {} dist/ \;
+          ls -la dist/
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
