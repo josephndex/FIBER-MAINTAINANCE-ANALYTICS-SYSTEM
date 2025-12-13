@@ -5,15 +5,13 @@ on:
     branches:
       - actuall-app-deployment
       - main
-  pull_request:
-    branches:
-      - actuall-app-deployment
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:  # Allows manual trigger from GitHub UI
 
 jobs:
   # =====================================================
-  # BUILD WINDOWS
+  # BUILD WINDOWS EXE
   # =====================================================
   build-windows:
     runs-on: windows-latest
@@ -31,22 +29,29 @@ jobs:
         working-directory: desktop_app/electron
         run: npm install
 
-      - name: Build Windows
+      - name: Build Windows EXE
         working-directory: desktop_app/electron
         run: npm run build:win
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: List dist folder
+        working-directory: desktop_app/electron
+        run: dir dist
+        shell: cmd
+
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: desktop_app/electron/dist/*.exe
+          name: windows-exe
+          path: |
+            desktop_app/electron/dist/*.exe
+            desktop_app/electron/dist/*.msi
           retention-days: 30
           if-no-files-found: warn
 
   # =====================================================
-  # BUILD LINUX
+  # BUILD LINUX APPIMAGE
   # =====================================================
   build-linux:
     runs-on: ubuntu-latest
@@ -64,24 +69,29 @@ jobs:
         working-directory: desktop_app/electron
         run: npm install
 
-      - name: Build Linux
+      - name: Build Linux AppImage
         working-directory: desktop_app/electron
         run: npm run build:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: List dist folder
+        working-directory: desktop_app/electron
+        run: ls -la dist/
+
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-build
+          name: linux-appimage
           path: |
             desktop_app/electron/dist/*.AppImage
             desktop_app/electron/dist/*.deb
+            desktop_app/electron/dist/*.rpm
           retention-days: 30
           if-no-files-found: warn
 
   # =====================================================
-  # BUILD MACOS
+  # BUILD MACOS DMG
   # =====================================================
   build-macos:
     runs-on: macos-latest
@@ -99,16 +109,20 @@ jobs:
         working-directory: desktop_app/electron
         run: npm install
 
-      - name: Build macOS
+      - name: Build macOS DMG
         working-directory: desktop_app/electron
         run: npm run build:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: List dist folder
+        working-directory: desktop_app/electron
+        run: ls -la dist/
+
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: macos-build
+          name: macos-dmg
           path: |
             desktop_app/electron/dist/*.dmg
             desktop_app/electron/dist/*.zip
@@ -116,7 +130,7 @@ jobs:
           if-no-files-found: warn
 
   # =====================================================
-  # BUILD ANDROID APK
+  # BUILD ANDROID APK (using EAS Build)
   # =====================================================
   build-android:
     runs-on: ubuntu-latest
@@ -130,40 +144,40 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: Setup Expo
+        uses: expo/expo-github-action@v8
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Expo CLI
-        run: npm install -g expo-cli @expo/ngrok
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
         working-directory: mobile_app
         run: npm install
 
-      - name: Build Android APK
+      - name: Build Android APK with EAS
+        working-directory: mobile_app
+        run: eas build --platform android --profile preview --non-interactive --local
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Find APK file
         working-directory: mobile_app
         run: |
-          npx expo prebuild --platform android --clean
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease
+          find . -name "*.apk" -type f
+          mkdir -p dist
+          find . -name "*.apk" -type f -exec cp {} dist/ \;
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: android-build
-          path: mobile_app/android/app/build/outputs/apk/release/*.apk
+          name: android-apk
+          path: mobile_app/dist/*.apk
           retention-days: 30
           if-no-files-found: warn
 
   # =====================================================
-  # CREATE RELEASE (only on tags)
+  # CREATE GITHUB RELEASE (only on version tags)
   # =====================================================
   create-release:
     needs: [build-windows, build-linux, build-macos, build-android]
@@ -176,17 +190,17 @@ jobs:
         with:
           path: artifacts
 
-      - name: Display structure of downloaded files
+      - name: Display downloaded files
         run: ls -R artifacts
 
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/windows-build/*
-            artifacts/linux-build/*
-            artifacts/macos-build/*
-            artifacts/android-build/*
+            artifacts/windows-exe/*
+            artifacts/linux-appimage/*
+            artifacts/macos-dmg/*
+            artifacts/android-apk/*
           draft: false
           prerelease: false
           generate_release_notes: true
