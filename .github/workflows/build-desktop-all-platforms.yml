@@ -1,0 +1,119 @@
+name: Build Desktop Apps (All Platforms)
+
+on:
+  push:
+    branches:
+      - actuall-app-deployment
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+        working-directory: desktop_app/electron/streamlit_app
+      - name: Build Streamlit EXE
+        working-directory: desktop_app/electron/streamlit_app
+        run: pyinstaller pyinstaller.spec --noconfirm
+      - name: Copy EXE to Electron
+        run: |
+          cp desktop_app/electron/streamlit_app/dist/fiber_maintenance_analytics/fiber_maintenance_analytics.exe desktop_app/electron/streamlit_app/
+      - name: Install Electron dependencies
+        working-directory: desktop_app/electron
+        run: npm install
+      - name: Build Windows Electron App
+        working-directory: desktop_app/electron
+        run: npx electron-builder --win --publish never
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: desktop_app/electron/dist/*.exe
+          retention-days: 30
+          if-no-files-found: warn
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+        working-directory: desktop_app/electron/streamlit_app
+      - name: Build Streamlit Binary
+        working-directory: desktop_app/electron/streamlit_app
+        run: pyinstaller pyinstaller.spec --noconfirm
+      - name: Copy Binary to Electron
+        run: |
+          cp desktop_app/electron/streamlit_app/dist/fiber_maintenance_analytics/fiber_maintenance_analytics desktop_app/electron/streamlit_app/
+      - name: Install Electron dependencies
+        working-directory: desktop_app/electron
+        run: npm install
+      - name: Build Linux Electron App
+        working-directory: desktop_app/electron
+        run: npx electron-builder --linux --publish never
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-appimage
+          path: desktop_app/electron/dist/*.AppImage
+          retention-days: 30
+          if-no-files-found: warn
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+        working-directory: desktop_app/electron/streamlit_app
+      - name: Build Streamlit Binary
+        working-directory: desktop_app/electron/streamlit_app
+        run: pyinstaller pyinstaller.spec --noconfirm
+      - name: Copy Binary to Electron
+        run: |
+          cp desktop_app/electron/streamlit_app/dist/fiber_maintenance_analytics/fiber_maintenance_analytics desktop_app/electron/streamlit_app/
+      - name: Install Electron dependencies
+        working-directory: desktop_app/electron
+        run: npm install
+      - name: Build macOS Electron App
+        working-directory: desktop_app/electron
+        run: npx electron-builder --mac --publish never
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: desktop_app/electron/dist/*.dmg
+          retention-days: 30
+          if-no-files-found: warn
