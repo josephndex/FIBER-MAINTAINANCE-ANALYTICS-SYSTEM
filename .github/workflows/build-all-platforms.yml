@@ -10,9 +10,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # =====================================================
-  # BUILD ANDROID APK using EAS Build
-  # =====================================================
   build-android:
     runs-on: ubuntu-latest
     
@@ -35,15 +32,15 @@ jobs:
         working-directory: mobile_app
         run: npm install
 
-      - name: Configure EAS Project
+      - name: Create EAS Project (force create if not exists)
         working-directory: mobile_app
         run: |
-          echo "Configuring EAS project for owner: nderitu"
-          npx eas-cli project:init --non-interactive || true
+          echo "Creating/linking EAS project for owner: nderitu"
+          npx eas-cli init --id fiber-maintenance-analytics --force --non-interactive || echo "Init completed"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android APK with EAS
+      - name: Build Android APK
         working-directory: mobile_app
         run: |
           echo "Starting Android APK build..."
@@ -54,16 +51,11 @@ jobs:
       - name: Build Info
         run: |
           echo "============================================"
-          echo "Android APK Build Submitted to EAS!"
+          echo "Android APK Build Submitted!"
           echo "============================================"
           echo ""
-          echo "To download your APK:"
-          echo "1. Go to https://expo.dev/accounts/nderitu"
-          echo "2. Find 'fiber-maintenance-analytics' project"
-          echo "3. Go to Builds tab"
-          echo "4. Download the APK once complete (~10-15 min)"
+          echo "Download your APK from:"
+          echo "https://expo.dev/accounts/nderitu/projects/fiber-maintenance-analytics/builds"
           echo ""
-          echo "Share the APK with friends for testing!"
+          echo "Build takes ~10-15 minutes"
           echo "============================================"
-
-# Trigger rebuild
