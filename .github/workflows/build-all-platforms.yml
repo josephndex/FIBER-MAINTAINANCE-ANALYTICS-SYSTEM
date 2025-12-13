@@ -1,4 +1,4 @@
-name: Build All Platforms
+name: Build Mobile Apps
 
 on:
   push:
@@ -10,47 +10,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  # =====================================================
-  # BUILD WINDOWS EXE
-  # =====================================================
-  build-windows:
-    runs-on: windows-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        working-directory: desktop_app/electron
-        run: npm install
-
-      - name: Build Windows EXE
-        working-directory: desktop_app/electron
-        run: npx electron-builder --win --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: List dist folder
-        working-directory: desktop_app/electron
-        run: dir dist
-        shell: cmd
-        continue-on-error: true
-
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-exe
-          path: |
-            desktop_app/electron/dist/*.exe
-            desktop_app/electron/dist/*.msi
-          retention-days: 30
-          if-no-files-found: warn
-
   # =====================================================
   # BUILD ANDROID APK using EAS Build
   # =====================================================
@@ -76,23 +35,38 @@ jobs:
         working-directory: mobile_app
         run: npm install
 
-      - name: Build Android APK with EAS
+      - name: Configure EAS Project
         working-directory: mobile_app
-        run: eas build --platform android --profile preview-apk --non-interactive --no-wait
+        run: |
+          # Create or update eas.json with project config
+          npx eas-cli project:init --non-interactive || true
+          npx eas-cli project:info || echo "Project info not available yet"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Get build info
+      - name: Build Android APK with EAS
         working-directory: mobile_app
         run: |
-          echo "Build submitted to EAS!"
-          echo "Check your build status at: https://expo.dev/accounts/YOUR_ACCOUNT/projects/fiber-maintenance-analytics/builds"
+          echo "Starting Android APK build..."
+          npx eas-cli build --platform android --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Info
+        run: |
+          echo "============================================"
+          echo "Android APK Build Submitted to EAS!"
+          echo "============================================"
           echo ""
-          echo "To download the APK once complete:"
+          echo "To download your APK:"
           echo "1. Go to https://expo.dev"
           echo "2. Sign in with your Expo account"
-          echo "3. Go to your project builds"
-          echo "4. Download the APK"
+          echo "3. Find 'fiber-maintenance-analytics' project"
+          echo "4. Go to Builds tab"
+          echo "5. Download the APK once complete (~10-15 min)"
+          echo ""
+          echo "Share the APK with friends for Android testing!"
+          echo "============================================"
 
   # =====================================================
   # BUILD iOS IPA using EAS Build
@@ -119,53 +93,34 @@ jobs:
         working-directory: mobile_app
         run: npm install
 
-      - name: Build iOS with EAS (Simulator)
+      - name: Configure EAS Project
         working-directory: mobile_app
-        run: eas build --platform ios --profile preview-ios --non-interactive --no-wait
+        run: |
+          npx eas-cli project:init --non-interactive || true
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Get build info
+      - name: Build iOS with EAS
         working-directory: mobile_app
         run: |
-          echo "iOS Build submitted to EAS!"
-          echo "Check your build status at: https://expo.dev/accounts/YOUR_ACCOUNT/projects/fiber-maintenance-analytics/builds"
-          echo ""
-          echo "Note: For App Store builds, you need an Apple Developer account ($99/year)"
-
-  # =====================================================
-  # CREATE GITHUB RELEASE (only on version tags)
-  # =====================================================
-  create-release:
-    needs: [build-windows]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Display downloaded files
-        run: ls -R artifacts
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            artifacts/windows-exe/*
-          body: |
-            ## Downloads
-            
-            ### Desktop
-            - Windows EXE included in this release
-            
-            ### Mobile (via EAS Build)
-            - Android APK: Check [Expo Build Dashboard](https://expo.dev)
-            - iOS: Check [Expo Build Dashboard](https://expo.dev)
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+          echo "Starting iOS build..."
+          npx eas-cli build --platform ios --profile preview --non-interactive --no-wait
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Info
+        run: |
+          echo "============================================"
+          echo "iOS Build Submitted to EAS!"
+          echo "============================================"
+          echo ""
+          echo "To test on iPhones:"
+          echo "1. Go to https://expo.dev"
+          echo "2. Sign in with your Expo account"
+          echo "3. Find 'fiber-maintenance-analytics' project"
+          echo "4. Go to Builds tab"
+          echo "5. For simulator: Download and run on Mac"
+          echo "6. For real devices: Use TestFlight or Ad-Hoc distribution"
+          echo ""
+          echo "Note: Real iPhone testing requires Apple Developer ($99/year)"
+          echo "============================================"

@@ -2,6 +2,7 @@
   "expo": {
     "name": "Fiber Analytics",
     "slug": "fiber-maintenance-analytics",
+    "owner": "datascience817",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -29,10 +30,16 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "apiUrl": "http://100.83.80.26:8000"
+      "apiUrl": "http://100.83.80.26:8000",
+      "eas": {
+        "projectId": "fiber-maintenance-analytics"
+      }
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }
