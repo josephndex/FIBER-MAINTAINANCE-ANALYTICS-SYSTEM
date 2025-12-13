@@ -7,7 +7,7 @@ on:
       - main
     tags:
       - 'v*'
-  workflow_dispatch:  # Allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   # =====================================================
@@ -52,7 +52,7 @@ jobs:
           if-no-files-found: warn
 
   # =====================================================
-  # BUILD ANDROID APK (using Expo prebuild + Gradle)
+  # BUILD ANDROID APK using EAS Build
   # =====================================================
   build-android:
     runs-on: ubuntu-latest
@@ -66,60 +66,78 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Expo CLI
-        run: npm install -g expo-cli eas-cli
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
         working-directory: mobile_app
         run: npm install
 
-      - name: Expo prebuild
+      - name: Build Android APK with EAS
         working-directory: mobile_app
-        run: |
-          npx expo prebuild --platform android --clean --no-install
-          ls -la android/ || echo "No android folder created"
+        run: eas build --platform android --profile preview-apk --non-interactive --no-wait
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install Android dependencies
-        working-directory: mobile_app/android
-        run: |
-          chmod +x gradlew
-          ./gradlew --version
-
-      - name: Build APK with Gradle
-        working-directory: mobile_app/android
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
-
-      - name: Find and copy APK
+      - name: Get build info
         working-directory: mobile_app
         run: |
-          mkdir -p dist
-          find . -name "*.apk" -type f -exec cp {} dist/ \;
-          ls -la dist/
+          echo "Build submitted to EAS!"
+          echo "Check your build status at: https://expo.dev/accounts/YOUR_ACCOUNT/projects/fiber-maintenance-analytics/builds"
+          echo ""
+          echo "To download the APK once complete:"
+          echo "1. Go to https://expo.dev"
+          echo "2. Sign in with your Expo account"
+          echo "3. Go to your project builds"
+          echo "4. Download the APK"
 
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4
+  # =====================================================
+  # BUILD iOS IPA using EAS Build
+  # =====================================================
+  build-ios:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          name: android-apk
-          path: mobile_app/dist/*.apk
-          retention-days: 30
-          if-no-files-found: warn
+          node-version: '18'
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: mobile_app
+        run: npm install
+
+      - name: Build iOS with EAS (Simulator)
+        working-directory: mobile_app
+        run: eas build --platform ios --profile preview-ios --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Get build info
+        working-directory: mobile_app
+        run: |
+          echo "iOS Build submitted to EAS!"
+          echo "Check your build status at: https://expo.dev/accounts/YOUR_ACCOUNT/projects/fiber-maintenance-analytics/builds"
+          echo ""
+          echo "Note: For App Store builds, you need an Apple Developer account ($99/year)"
 
   # =====================================================
   # CREATE GITHUB RELEASE (only on version tags)
   # =====================================================
   create-release:
-    needs: [build-windows, build-android]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     
@@ -137,7 +155,15 @@ jobs:
         with:
           files: |
             artifacts/windows-exe/*
-            artifacts/android-apk/*
+          body: |
+            ## Downloads
+            
+            ### Desktop
+            - Windows EXE included in this release
+            
+            ### Mobile (via EAS Build)
+            - Android APK: Check [Expo Build Dashboard](https://expo.dev)
+            - iOS: Check [Expo Build Dashboard](https://expo.dev)
           draft: false
           prerelease: false
           generate_release_notes: true
