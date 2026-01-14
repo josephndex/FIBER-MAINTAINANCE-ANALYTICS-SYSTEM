@@ -1,4 +1,6 @@
 node_modules/
 dist/
+python/
 *.log
 .DS_Store
+.env

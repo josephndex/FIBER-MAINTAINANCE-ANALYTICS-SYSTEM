@@ -12,21 +12,21 @@ FIBER-MAINTAINANCE-ANALYTICS-SYSTEM/
 │       ├── preload.js              # Preload script
 │       ├── updater.js              # Auto-update module
 │       ├── package.json            # Electron config & build settings
+│       ├── build-linux.sh          # Linux build script (automated)
+│       ├── python/                 # Bundled Python (created during build)
 │       ├── streamlit_app/          # Bundled Streamlit application
 │       │   ├── main.py             # Main Streamlit app
 │       │   ├── pages/              # All dashboard pages
 │       │   ├── components/         # UI components
-│       │   └── ...
+│       │   └── .env                # Database config (copy from server/)
 │       └── assets/                 # App icons
 │
 ├── server/                         # API Server (FastAPI)
 │   ├── api_server.py               # REST API backend
 │   ├── .env                        # Database configuration
-│   ├── requirements.txt            # Python dependencies
-│   └── start.sh / start.bat        # Startup scripts
+│   └── requirements.txt            # Python dependencies
 │
 └── mobile_app/                     # Mobile application (React Native)
-    └── ...
 ```
 
 ---
@@ -36,8 +36,7 @@ FIBER-MAINTAINANCE-ANALYTICS-SYSTEM/
 ### Prerequisites
 
 - **Node.js 18+**: https://nodejs.org/
-- **Python 3.8+**: https://python.org/
-- **Streamlit**: `pip install streamlit plotly pandas numpy requests`
+- **Python 3.11+**: https://python.org/
 
 ### Run in Development Mode
 
@@ -51,45 +50,112 @@ npm start
 
 ## 🔨 Building for Distribution
 
-### Build for Windows (EXE Installer)
+### 🐧 Build for Linux (Recommended: Use build script)
 
 ```bash
 cd desktop_app/electron
+
+# Make script executable and run
+chmod +x build-linux.sh
+./build-linux.sh
+```
+
+This script automatically:
+1. Creates a portable Python environment with all dependencies
+2. Installs Node.js packages
+3. Copies your `.env` configuration
+4. Builds AppImage and DEB packages
+
+**Output:**
+- `dist/Fiber Maintenance Analytics-2.0.0-linux-x64.AppImage`
+- `dist/Fiber Maintenance Analytics-2.0.0-linux-amd64.deb`
+
+**To run:**
+```bash
+chmod +x dist/*.AppImage
+./dist/Fiber\ Maintenance\ Analytics-2.0.0-linux-x64.AppImage
+```
+
+**To install DEB:**
+```bash
+sudo dpkg -i dist/*.deb
+```
+
+---
+
+### 🪟 Build for Windows
+
+**Option 1: Manual build (on Windows)**
+
+```bash
+cd desktop_app/electron
+
+# 1. Create embedded Python in a short path (avoids path length issues)
+cd C:\temp
+Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip" -OutFile python.zip
+Expand-Archive python.zip -DestinationPath python -Force
+Remove-Item python.zip
+
+# 2. Enable pip in embedded Python
+# Edit python/python311._pth - uncomment "import site" and add "Lib\site-packages"
+
+# 3. Install pip and packages
+Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile get-pip.py
+.\python\python.exe get-pip.py
+.\python\python.exe -m pip install streamlit plotly pandas numpy mysql-connector-python python-dotenv bcrypt sqlalchemy requests tqdm openpyxl scipy
+
+# 4. Copy Python to project
+Copy-Item -Path "C:\temp\python" -Destination "desktop_app\electron\python" -Recurse -Force
+
+# 5. Build
+cd desktop_app\electron
 npm install
 npm run build:win
 ```
 
-Output: `dist/Fiber Maintenance Analytics-2.0.0-win-x64.exe`
+**Output:** `dist/Fiber Maintenance Analytics-2.0.0-win-x64.exe`
 
-### Build for Linux (AppImage & DEB)
+---
 
-```bash
-cd desktop_app/electron
-npm install
-npm run build:linux
-```
-
-Output:
-- `dist/Fiber Maintenance Analytics-2.0.0-linux-x64.AppImage`
-- `dist/Fiber Maintenance Analytics-2.0.0-linux-x64.deb`
-
-### Build for macOS (DMG)
+### 🍎 Build for macOS
 
 ```bash
 cd desktop_app/electron
+
+# Create Python environment
+python3 -m venv python
+source python/bin/activate
+pip install streamlit plotly pandas numpy mysql-connector-python python-dotenv bcrypt sqlalchemy requests tqdm openpyxl scipy
+deactivate
+
+# Build
 npm install
 npm run build:mac
 ```
 
-Output: `dist/Fiber Maintenance Analytics-2.0.0-mac-x64.dmg`
+**Output:** `dist/Fiber Maintenance Analytics-2.0.0-mac-x64.dmg`
 
-### Build for All Platforms
+---
+
+## ⚙️ Configuration
+
+After building, copy your `.env` file to the app:
 
 ```bash
-npm run build:all
+# For unpacked testing
+cp server/.env desktop_app/electron/dist/linux-unpacked/resources/streamlit_app/.env
+
+# For Windows
+copy server\.env desktop_app\electron\dist\win-unpacked\resources\streamlit_app\.env
 ```
 
-> **Note**: Cross-platform building has limitations. Build Windows on Windows, Linux on Linux, etc., for best results.
+The `.env` file should contain:
+```env
+DB_NAME_1=fiber_maintainance_department
+DB_HOST_1=your_database_host
+DB_USER_1=your_username
+DB_PASSWORD_1=your_password
+```
 
 ---
 

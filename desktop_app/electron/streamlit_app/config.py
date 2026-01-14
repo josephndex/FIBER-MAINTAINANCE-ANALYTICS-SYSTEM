@@ -2,6 +2,7 @@
 Configuration settings for Fiber Maintenance Analytics System
 """
 import os
+import sys
 
 # App Settings
 APP_TITLE = "Fiber Maintenance Analytics System"
@@ -12,9 +13,20 @@ PAGE_LAYOUT = "wide"
 DEVELOPER_NAME = "Joseph Nderitu"
 DEVELOPER_EMAIL = "josephnderito16@gmail.com"
 
-# Data Settings
-DATA_DIR = "data"
-os.makedirs(DATA_DIR, exist_ok=True)
+# Data Settings - Use user's AppData folder for writable storage
+# This avoids permission issues when installed to Program Files
+if sys.platform == "win32":
+    APP_DATA = os.path.join(os.environ.get('LOCALAPPDATA', os.path.expanduser('~')), 'FiberMaintenanceAnalytics')
+else:
+    APP_DATA = os.path.join(os.path.expanduser('~'), '.fiber_analytics')
+
+DATA_DIR = os.path.join(APP_DATA, "data")
+try:
+    os.makedirs(DATA_DIR, exist_ok=True)
+except PermissionError:
+    # Fallback to temp directory if still no permission
+    DATA_DIR = os.path.join(os.environ.get('TEMP', '/tmp'), 'fiber_analytics_data')
+    os.makedirs(DATA_DIR, exist_ok=True)
 
 # Theme Colors - STUNNING Orange/Purple palette
 THEME_COLORS = {

@@ -177,18 +177,17 @@ function checkStreamlitReady(port, callback, retries = 60, delay = 500) {
 
 // Start Streamlit process
 async function startStreamlit() {
-    const pythonPath = getPythonPath();
     const appDir = getStreamlitAppPath();
-    
     if (!appDir) {
         throw new Error('Streamlit app not found! Please ensure main.py is in the streamlit_app folder.');
     }
-    
-    const mainPyPath = path.join(appDir, 'main.py');
-    console.log(`Python: ${pythonPath}`);
-    console.log(`App directory: ${appDir}`);
-    console.log(`Main script: ${mainPyPath}`);
-    
+
+    // Try to find bundled binary first
+    let binaryName = 'fiber_maintenance_analytics';
+    if (process.platform === 'win32') binaryName += '.exe';
+    const bundledBinary = path.join(appDir, binaryName);
+    const useBundled = fs.existsSync(bundledBinary);
+
     // Find available port
     let port = CONFIG.streamlitPort;
     if (!(await isPortAvailable(port))) {
@@ -196,7 +195,7 @@ async function startStreamlit() {
         console.log(`Port ${CONFIG.streamlitPort} in use, using ${port}`);
     }
     CONFIG.streamlitPort = port;
-    
+
     return new Promise((resolve, reject) => {
         // Prepare environment
         const env = {
@@ -207,50 +206,56 @@ async function startStreamlit() {
             API_SERVER_URL: CONFIG.serverUrl,
             PYTHONUNBUFFERED: '1'
         };
-        
-        // Add bundled Python to PATH if available
-        const pythonDir = path.dirname(pythonPath);
-        if (fs.existsSync(pythonDir)) {
-            env.PATH = `${pythonDir}${path.delimiter}${env.PATH || ''}`;
+
+        let child, args;
+        if (useBundled) {
+            // Run the bundled binary directly
+            console.log(`Launching bundled binary: ${bundledBinary}`);
+            args = ['--server.port', port.toString(), '--server.address', CONFIG.streamlitHost, '--server.headless', 'true'];
+            child = spawn(bundledBinary, args, {
+                cwd: appDir,
+                env: env,
+                stdio: ['ignore', 'pipe', 'pipe']
+            });
+        } else {
+            // Fallback to old method (system Python)
+            const pythonPath = getPythonPath();
+            const mainPyPath = path.join(appDir, 'main.py');
+            console.log(`Python: ${pythonPath}`);
+            console.log(`App directory: ${appDir}`);
+            console.log(`Main script: ${mainPyPath}`);
+            args = [
+                '-m', 'streamlit', 'run',
+                mainPyPath,
+                '--server.port', port.toString(),
+                '--server.address', CONFIG.streamlitHost,
+                '--server.headless', 'true',
+                '--browser.gatherUsageStats', 'false',
+                '--theme.base', 'dark'
+            ];
+            child = spawn(pythonPath, args, {
+                cwd: appDir,
+                env: env,
+                stdio: ['ignore', 'pipe', 'pipe']
+            });
         }
-        
-        // Start Streamlit
-        const args = [
-            '-m', 'streamlit', 'run',
-            mainPyPath,
-            '--server.port', port.toString(),
-            '--server.address', CONFIG.streamlitHost,
-            '--server.headless', 'true',
-            '--browser.gatherUsageStats', 'false',
-            '--theme.base', 'dark'
-        ];
-        
-        console.log(`Starting: ${pythonPath} ${args.join(' ')}`);
-        
-        streamlitProcess = spawn(pythonPath, args, {
-            cwd: appDir,
-            env: env,
-            stdio: ['ignore', 'pipe', 'pipe']
-        });
-        
+
+        streamlitProcess = child;
         streamlitProcess.stdout.on('data', (data) => {
             console.log(`[Streamlit] ${data.toString().trim()}`);
         });
-        
         streamlitProcess.stderr.on('data', (data) => {
             console.log(`[Streamlit] ${data.toString().trim()}`);
         });
-        
         streamlitProcess.on('error', (err) => {
             console.error('Failed to start Streamlit:', err);
             reject(err);
         });
-        
         streamlitProcess.on('close', (code) => {
             console.log(`Streamlit process exited with code ${code}`);
             streamlitProcess = null;
         });
-        
+
         // Wait for Streamlit to be ready
         checkStreamlitReady(port, (ready) => {
             if (ready) {
